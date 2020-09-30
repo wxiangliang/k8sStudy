@@ -1,0 +1,16 @@
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: cloud
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /usr
+            backend:
+              serviceName: cloud
+              servicePort: 6302
+          - path: /nginx
+            backend:
+              serviceName: nginx
+              servicePort: 80

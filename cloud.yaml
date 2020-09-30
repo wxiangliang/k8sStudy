@@ -1,0 +1,56 @@
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: cloud
+  labels:
+    app: cloud
+spec:
+  replicas: 3
+  selector:
+    app: cloud
+  template:
+    metadata:
+      name: cloud
+      labels:
+        app: cloud
+    spec:
+     volumes:
+       - name: storage
+         persistentVolumeClaim:
+           claimName: pvc1
+     containers:
+      - name: cloud
+        image: xl/cloud:v5
+        ports:
+        - containerPort: 6302
+        volumeMounts:
+          - mountPath: "/app/log"
+            name: storage
+        env:
+          - name: MY_POD_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+          - name: MY_NODE_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.nodeName
+          - name: DB_HOST
+            value: mysql
+        livenessProbe:
+          httpGet:
+            path: /usr/checkLive
+            port: 6302
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          failureThreshold: 5
+        startupProbe:
+          httpGet:
+            path: /usr/checkLive
+            port: 6302
+          failureThreshold: 30
+          periodSeconds: 5
+        readinessProbe:
+          httpGet:
+            port: 6302
+            path: /usr/ready
